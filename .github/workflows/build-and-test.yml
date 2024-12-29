@@ -45,4 +45,4 @@ jobs:
         run: dotnet build --configuration Release --no-restore
 
       - name: Test
-        run: dotnet test test/Soenneker.Runners.FFplay.Tests.csproj --no-restore --verbosity normal
+        run: dotnet test test/Soenneker.Runners.FFplay.Tests/Soenneker.Runners.FFplay.Tests.csproj --no-restore --verbosity normal
