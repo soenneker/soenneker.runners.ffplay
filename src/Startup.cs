@@ -1,15 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Soenneker.Compression.SevenZip.Registrars;
-using Soenneker.Git.Util.Registrars;
-using Soenneker.Runners.FFplay.Utils;
-using Soenneker.Runners.FFplay.Utils.Abstract;
-using Soenneker.Utils.Dotnet.NuGet.Registrars;
-using Soenneker.Utils.Dotnet.Registrars;
+using Soenneker.Managers.Runners.Registrars;
 using Soenneker.Utils.File.Download.Registrars;
-using Soenneker.Utils.File.Registrars;
-using Soenneker.Utils.FileSync.Registrars;
-using Soenneker.Utils.HttpClientCache.Registrar;
-using Soenneker.Utils.SHA3.Registrars;
 
 namespace Soenneker.Runners.FFplay;
 
@@ -27,12 +19,8 @@ public static class Startup
     public static IServiceCollection SetupIoC(this IServiceCollection services)
     {
         services.AddHostedService<ConsoleHostedService>();
-        services.AddSha3UtilAsScoped();
-        services.AddFileUtilSyncAsScoped();
-        services.AddGitUtilAsScoped();
         services.AddSevenZipCompressionUtilAsScoped();
-        services.AddScoped<IFileOperationsUtil, FileOperationsUtil>();
-        services.AddDotnetNuGetUtilAsScoped();
+        services.AddRunnersManagerAsScoped();
         services.AddFileDownloadUtilAsScoped();
 
         return services;
