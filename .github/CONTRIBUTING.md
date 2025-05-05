@@ -1,4 +1,4 @@
-# Contributing to Soenneker.Runners.FFplay
+﻿# Contributing to Soenneker.Runners.FFplay
 
 We're excited that you're interested in contributing!
 
