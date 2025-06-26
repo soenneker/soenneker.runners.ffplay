@@ -7,6 +7,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Soenneker.Compression.SevenZip.Abstract;
 using Soenneker.Managers.Runners.Abstract;
+using Soenneker.Utils.Directory.Abstract;
 using Soenneker.Utils.File.Download.Abstract;
 
 namespace Soenneker.Runners.FFplay;
@@ -19,17 +20,19 @@ public sealed class ConsoleHostedService : IHostedService
     private readonly IRunnersManager _runnersManager;
     private readonly ISevenZipCompressionUtil _sevenZipCompressionUtil;
     private readonly IFileDownloadUtil _fileDownloadUtil;
+    private readonly IDirectoryUtil _directoryUtil;
 
     private int? _exitCode;
 
     public ConsoleHostedService(ILogger<ConsoleHostedService> logger, IHostApplicationLifetime appLifetime, IRunnersManager runnersManager,
-        ISevenZipCompressionUtil sevenZipCompressionUtil, IFileDownloadUtil fileDownloadUtil)
+        ISevenZipCompressionUtil sevenZipCompressionUtil, IFileDownloadUtil fileDownloadUtil, IDirectoryUtil directoryUtil)
     {
         _logger = logger;
         _appLifetime = appLifetime;
         _runnersManager = runnersManager;
         _sevenZipCompressionUtil = sevenZipCompressionUtil;
         _fileDownloadUtil = fileDownloadUtil;
+        _directoryUtil = directoryUtil;
     }
 
     public Task StartAsync(CancellationToken cancellationToken = default)
@@ -47,7 +50,9 @@ public sealed class ConsoleHostedService : IHostedService
 
                     string extractionPath = await _sevenZipCompressionUtil.Extract(filePath!, cancellationToken);
 
-                    LogContentsRecursively(extractionPath);
+                    _directoryUtil.MoveContentsUpOneLevelStrict(extractionPath);
+
+                    _directoryUtil.LogContentsRecursively(extractionPath);
 
                     await _runnersManager.PushIfChangesNeeded(Path.Combine(extractionPath, "bin", Constants.FileName), Constants.FileName, Constants.Library,
                         $"https://github.com/soenneker/{Constants.Library}", cancellationToken);
@@ -75,45 +80,6 @@ public sealed class ConsoleHostedService : IHostedService
         });
 
         return Task.CompletedTask;
-    }
-
-    public void LogContentsRecursively(string path, int indentLevel = 0)
-    {
-        if (!Directory.Exists(path))
-        {
-            _logger.LogWarning("Directory does not exist: {Path}", path);
-            return;
-        }
-
-        try
-        {
-            string indent = new string(' ', indentLevel * 2);
-
-            // Log current directory
-            _logger.LogInformation("{Indent}📁 {Directory}", indent, Path.GetFileName(path));
-
-            // Log files in the directory
-            var files = Directory.GetFiles(path);
-            foreach (var file in files)
-            {
-                _logger.LogInformation("{Indent}  📄 {File}", indent, Path.GetFileName(file));
-            }
-
-            // Recurse into subdirectories
-            var subdirectories = Directory.GetDirectories(path);
-            foreach (var subdir in subdirectories)
-            {
-                LogContentsRecursively(subdir, indentLevel + 1);
-            }
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            _logger.LogWarning(ex, "Access denied to {Path}", path);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error reading directory {Path}", path);
-        }
     }
 
     public Task StopAsync(CancellationToken cancellationToken)
