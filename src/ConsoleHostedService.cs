@@ -11,7 +11,7 @@ using Soenneker.Utils.File.Download.Abstract;
 
 namespace Soenneker.Runners.FFplay;
 
-public class ConsoleHostedService : IHostedService
+public sealed class ConsoleHostedService : IHostedService
 {
     private readonly ILogger<ConsoleHostedService> _logger;
 
@@ -22,8 +22,8 @@ public class ConsoleHostedService : IHostedService
 
     private int? _exitCode;
 
-    public ConsoleHostedService(ILogger<ConsoleHostedService> logger, IHostApplicationLifetime appLifetime,
-        IRunnersManager runnersManager, ISevenZipCompressionUtil sevenZipCompressionUtil, IFileDownloadUtil fileDownloadUtil)
+    public ConsoleHostedService(ILogger<ConsoleHostedService> logger, IHostApplicationLifetime appLifetime, IRunnersManager runnersManager,
+        ISevenZipCompressionUtil sevenZipCompressionUtil, IFileDownloadUtil fileDownloadUtil)
     {
         _logger = logger;
         _appLifetime = appLifetime;
@@ -42,11 +42,13 @@ public class ConsoleHostedService : IHostedService
 
                 try
                 {
-                    string? filePath = await _fileDownloadUtil.Download("https://www.gyan.dev/ffmpeg/builds/ffmpeg-git-full.7z", fileExtension: ".7z", cancellationToken: cancellationToken);
+                    string? filePath = await _fileDownloadUtil.Download("https://www.gyan.dev/ffmpeg/builds/ffmpeg-git-full.7z", fileExtension: ".7z",
+                        cancellationToken: cancellationToken);
 
-                    string extractionPath = await _sevenZipCompressionUtil.Extract(filePath!, Constants.FileName, true, cancellationToken);
+                    string extractionPath = await _sevenZipCompressionUtil.Extract(filePath!, cancellationToken);
 
-                    await _runnersManager.PushIfChangesNeeded(Path.Combine(extractionPath, "bin", Constants.FileName), Constants.FileName, Constants.Library, $"https://github.com/soenneker/{Constants.Library}", cancellationToken);
+                    await _runnersManager.PushIfChangesNeeded(Path.Combine(extractionPath, "bin", Constants.FileName), Constants.FileName, Constants.Library,
+                        $"https://github.com/soenneker/{Constants.Library}", cancellationToken);
 
                     _logger.LogInformation("Complete!");
 

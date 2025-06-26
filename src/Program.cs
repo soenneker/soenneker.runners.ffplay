@@ -9,7 +9,7 @@ using Soenneker.Extensions.LoggerConfiguration;
 
 namespace Soenneker.Runners.FFplay;
 
-public class Program
+public sealed class Program
 {
     private static string? _environment;
 
