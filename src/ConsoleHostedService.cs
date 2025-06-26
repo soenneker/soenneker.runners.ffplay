@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -47,7 +47,7 @@ public sealed class ConsoleHostedService : IHostedService
 
                     string extractionPath = await _sevenZipCompressionUtil.Extract(filePath!, cancellationToken);
 
-                    _logger.LogInformation($"{File.Exists(Path.Combine(extractionPath, "bin", Constants.FileName))}");
+                    LogContentsRecursively(extractionPath);
 
                     await _runnersManager.PushIfChangesNeeded(Path.Combine(extractionPath, "bin", Constants.FileName), Constants.FileName, Constants.Library,
                         $"https://github.com/soenneker/{Constants.Library}", cancellationToken);
@@ -75,6 +75,45 @@ public sealed class ConsoleHostedService : IHostedService
         });
 
         return Task.CompletedTask;
+    }
+
+    public void LogContentsRecursively(string path, int indentLevel = 0)
+    {
+        if (!Directory.Exists(path))
+        {
+            _logger.LogWarning("Directory does not exist: {Path}", path);
+            return;
+        }
+
+        try
+        {
+            string indent = new string(' ', indentLevel * 2);
+
+            // Log current directory
+            _logger.LogInformation("{Indent}📁 {Directory}", indent, Path.GetFileName(path));
+
+            // Log files in the directory
+            var files = Directory.GetFiles(path);
+            foreach (var file in files)
+            {
+                _logger.LogInformation("{Indent}  📄 {File}", indent, Path.GetFileName(file));
+            }
+
+            // Recurse into subdirectories
+            var subdirectories = Directory.GetDirectories(path);
+            foreach (var subdir in subdirectories)
+            {
+                LogContentsRecursively(subdir, indentLevel + 1);
+            }
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            _logger.LogWarning(ex, "Access denied to {Path}", path);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error reading directory {Path}", path);
+        }
     }
 
     public Task StopAsync(CancellationToken cancellationToken)
