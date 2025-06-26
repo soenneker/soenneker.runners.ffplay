@@ -52,8 +52,6 @@ public sealed class ConsoleHostedService : IHostedService
 
                     _directoryUtil.MoveContentsUpOneLevelStrict(extractionPath);
 
-                    _directoryUtil.LogContentsRecursively(extractionPath);
-
                     await _runnersManager.PushIfChangesNeeded(Path.Combine(extractionPath, "bin", Constants.FileName), Constants.FileName, Constants.Library,
                         $"https://github.com/soenneker/{Constants.Library}", cancellationToken);
 
