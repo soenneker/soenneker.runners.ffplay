@@ -6,6 +6,7 @@ using Microsoft.Extensions.Hosting;
 using Serilog;
 using Soenneker.Enums.DeployEnvironment;
 using Soenneker.Extensions.LoggerConfiguration;
+using Soenneker.Extensions.String;
 
 namespace Soenneker.Runners.FFplay;
 
@@ -19,7 +20,7 @@ public sealed class Program
     {
         _environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
-        if (string.IsNullOrWhiteSpace(_environment))
+        if (_environment.IsNullOrWhiteSpace())
             throw new Exception("ASPNETCORE_ENVIRONMENT is not set");
 
         // Declare CancellationTokenSource in a broader scope
@@ -28,7 +29,8 @@ public sealed class Program
 
         try
         {
-            await CreateHostBuilder(args).RunConsoleAsync(_cts.Token);
+            await CreateHostBuilder(args)
+                .RunConsoleAsync(_cts.Token);
         }
         catch (Exception e)
         {
@@ -54,15 +56,18 @@ public sealed class Program
         LoggerConfigurationExtension.BuildBootstrapLoggerAndSetGloballySync(envEnum);
 
         IHostBuilder? host = Host.CreateDefaultBuilder(args)
-            .ConfigureAppConfiguration((hostingContext, builder) =>
-            {
-                builder.AddEnvironmentVariables();
-                builder.SetBasePath(hostingContext.HostingEnvironment.ContentRootPath);
+                                 .ConfigureAppConfiguration((hostingContext, builder) =>
+                                 {
+                                     builder.AddEnvironmentVariables();
+                                     builder.SetBasePath(hostingContext.HostingEnvironment.ContentRootPath);
 
-                builder.Build();
-            })
-            .UseSerilog()
-            .ConfigureServices((_, services) => { Startup.ConfigureServices(services); });
+                                     builder.Build();
+                                 })
+                                 .UseSerilog()
+                                 .ConfigureServices((_, services) =>
+                                 {
+                                     Startup.ConfigureServices(services);
+                                 });
 
         return host;
     }
