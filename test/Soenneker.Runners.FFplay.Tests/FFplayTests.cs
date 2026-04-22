@@ -1,17 +1,16 @@
-using Soenneker.Tests.FixturedUnit;
-using Xunit;
+using Soenneker.Tests.HostedUnit;
 
 namespace Soenneker.Runners.FFplay.Tests;
 
-[Collection("Collection")]
-public class FFplayTests : FixturedUnitTest
+[ClassDataSource<Host>(Shared = SharedType.PerTestSession)]
+public class FFplayTests : HostedUnitTest
 {
 
-    public FFplayTests(Fixture fixture, ITestOutputHelper output) : base(fixture, output)
+    public FFplayTests(Host host) : base(host)
     {
     }
 
-    [Fact]
+    [Test]
     public void Default()
     {
 
