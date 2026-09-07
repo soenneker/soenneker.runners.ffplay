@@ -74,8 +74,6 @@ public sealed class Program
                                  {
                                      builder.AddEnvironmentVariables();
                                      builder.SetBasePath(hostingContext.HostingEnvironment.ContentRootPath);
-
-                                     builder.Build();
                                  })
                                  .UseSerilog()
                                  .ConfigureServices((_, services) =>
